@@ -7,16 +7,32 @@
 
 namespace konovalov_s_symbol_count {
 
-class ExampleRunPerfTestProcesses : public ppc::util::BaseRunPerfTests<InType, OutType> {
-  const int kCount_ = 100;
-  InType input_data_{};
+class KonovalovSSymbolCountPerfTest : public ppc::util::BaseRunPerfTests<InType, OutType> {
+  InType input_data_;
+  OutType correct_output = 0;
 
   void SetUp() override {
-    input_data_ = kCount_;
+    // TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
+    // std::string data4test = std::get<1>(params);
+    
+    // std::ifstream in;
+    // in.open(data4test);
+    // std::getline(in, input_data_);
+
+    // correct_output = std::get<0>(params);
+    
+
+    // in.close();
+
+    correct_output = 1500;
+
+    for(std::uint32_t i = 0; i < 1500; i++)
+      input_data_ += "P/1.";
+
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    return input_data_ == output_data;
+    return output_data == correct_output;
   }
 
   InType GetTestInputData() final {
@@ -24,17 +40,19 @@ class ExampleRunPerfTestProcesses : public ppc::util::BaseRunPerfTests<InType, O
   }
 };
 
-TEST_P(ExampleRunPerfTestProcesses, RunPerfModes) {
+TEST_P(KonovalovSSymbolCountPerfTest, SymbolsInLineCounPT) {
   ExecuteTest(GetParam());
 }
+
+
 
 const auto kAllPerfTasks =
     ppc::util::MakeAllPerfTasks<InType, KonovalovSSymbolCountMPI, KonovalovSSymbolCountSEQ>(PPC_SETTINGS_konovalov_s_symbol_count);
 
 const auto kGtestValues = ppc::util::TupleToGTestValues(kAllPerfTasks);
 
-const auto kPerfTestName = ExampleRunPerfTestProcesses::CustomPerfTestName;
+const auto kPerfTestName = KonovalovSSymbolCountPerfTest::CustomPerfTestName;
 
-INSTANTIATE_TEST_SUITE_P(RunModeTests, ExampleRunPerfTestProcesses, kGtestValues, kPerfTestName);
+INSTANTIATE_TEST_SUITE_P(PTestData, KonovalovSSymbolCountPerfTest, kGtestValues, kPerfTestName);
 
 }  // namespace konovalov_s_symbol_count

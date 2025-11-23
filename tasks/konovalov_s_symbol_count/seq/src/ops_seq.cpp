@@ -15,46 +15,32 @@ KonovalovSSymbolCountSEQ::KonovalovSSymbolCountSEQ(const InType &in) {
 }
 
 bool KonovalovSSymbolCountSEQ::ValidationImpl() {
-  return (GetInput() > 0) && (GetOutput() == 0);
+  return true;
 }
 
 bool KonovalovSSymbolCountSEQ::PreProcessingImpl() {
-  GetOutput() = 2 * GetInput();
-  return GetOutput() > 0;
+  return true;
 }
 
 bool KonovalovSSymbolCountSEQ::RunImpl() {
-  if (GetInput() == 0) {
-    return false;
+  InType &line = GetInput();
+  std::size_t line_length = line.length();
+  
+  int symbols_count = 0;
+
+  for (std::uint32_t i = 0; i < line_length; i++){
+      if(isalnum(line[i]) && !isdigit(line[i])) symbols_count++;
   }
 
-  for (InType i = 0; i < GetInput(); i++) {
-    for (InType j = 0; j < GetInput(); j++) {
-      for (InType k = 0; k < GetInput(); k++) {
-        std::vector<InType> tmp(i + j + k, 1);
-        GetOutput() += std::accumulate(tmp.begin(), tmp.end(), 0);
-        GetOutput() -= i + j + k;
-      }
-    }
-  }
+  //GetOutput() = static_cast<OutType>(symbols_count);
 
-  const int num_threads = ppc::util::GetNumThreads();
-  GetOutput() *= num_threads;
+  GetOutput() = static_cast<OutType>(symbols_count);
 
-  int counter = 0;
-  for (int i = 0; i < num_threads; i++) {
-    counter++;
-  }
-
-  if (counter != 0) {
-    GetOutput() /= counter;
-  }
-  return GetOutput() > 0;
+  return true;
 }
 
 bool KonovalovSSymbolCountSEQ::PostProcessingImpl() {
-  GetOutput() -= GetInput();
-  return GetOutput() > 0;
+  return true;
 }
 
 }  // namespace konovalov_s_symbol_count

@@ -20,39 +20,29 @@
 
 namespace konovalov_s_symbol_count {
 
-class KonovalovSRunFuncTestsProcesses : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
+class KonovalovSSymbolCountFuncTest : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
  public:
   static std::string PrintTestParam(const TestType &test_param) {
-    return std::to_string(std::get<0>(test_param)) + "_" + std::get<1>(test_param);
+    int fndot = std::get<1>(test_param).find(".");
+    return std::get<1>(test_param).substr(0, fndot);
   }
 
  protected:
   void SetUp() override {
-    int width = -1;
-    int height = -1;
-    int channels = -1;
-    std::vector<uint8_t> img;
-    // Read image in RGB to ensure consistent channel count
-    {
-      std::string abs_path = ppc::util::GetAbsoluteTaskPath(PPC_ID_konovalov_s_symbol_count, "pic.jpg");
-      auto *data = stbi_load(abs_path.c_str(), &width, &height, &channels, STBI_rgb);
-      if (data == nullptr) {
-        throw std::runtime_error("Failed to load image: " + std::string(stbi_failure_reason()));
-      }
-      channels = STBI_rgb;
-      img = std::vector<uint8_t>(data, data + (static_cast<ptrdiff_t>(width * height * channels)));
-      stbi_image_free(data);
-      if (std::cmp_not_equal(width, height)) {
-        throw std::runtime_error("width != height: ");
-      }
-    }
-
     TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
-    input_data_ = width - height + std::min(std::accumulate(img.begin(), img.end(), 0), channels);
+    std::string data4test = ppc::util::GetAbsoluteTaskPath(PPC_ID_konovalov_s_symbol_count, std::get<1>(params));
+
+    std::ifstream in(data4test);
+    while (std::getline(in, input_data_)){}
+
+    correct_output = std::get<0>(params);
+    
+
+    in.close();
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    return (input_data_ == output_data);
+    return output_data == correct_output;
   }
 
   InType GetTestInputData() final {
@@ -60,16 +50,17 @@ class KonovalovSRunFuncTestsProcesses : public ppc::util::BaseRunFuncTests<InTyp
   }
 
  private:
-  InType input_data_ = 0;
+  InType input_data_;
+  OutType correct_output;
 };
 
 namespace {
 
-TEST_P(KonovalovSRunFuncTestsProcesses, MatmulFromPic) {
+TEST_P(KonovalovSSymbolCountFuncTest, SymbolsInLineCountFT) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 3> kTestParam = {std::make_tuple(3, "3"), std::make_tuple(5, "5"), std::make_tuple(7, "7")};
+const std::array<TestType, 3> kTestParam = {std::make_tuple(15, "text_line_15.txt"), std::make_tuple(337, "text_line_337.txt"),std::make_tuple(681, "text_line_681.txt")};
 
 const auto kTestTasksList =
     std::tuple_cat(ppc::util::AddFuncTask<KonovalovSSymbolCountMPI, InType>(kTestParam, PPC_SETTINGS_konovalov_s_symbol_count),
@@ -77,9 +68,9 @@ const auto kTestTasksList =
 
 const auto kGtestValues = ppc::util::ExpandToValues(kTestTasksList);
 
-const auto kPerfTestName = KonovalovSRunFuncTestsProcesses::PrintFuncTestName<KonovalovSRunFuncTestsProcesses>;
+const auto kPerfTestName = KonovalovSSymbolCountFuncTest::PrintFuncTestName<KonovalovSSymbolCountFuncTest>;
 
-INSTANTIATE_TEST_SUITE_P(PicMatrixTests, KonovalovSRunFuncTestsProcesses, kGtestValues, kPerfTestName);
+INSTANTIATE_TEST_SUITE_P(FTestData, KonovalovSSymbolCountFuncTest, kGtestValues, kPerfTestName);
 
 }  // namespace
 
