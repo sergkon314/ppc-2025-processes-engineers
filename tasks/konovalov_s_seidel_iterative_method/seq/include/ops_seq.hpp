@@ -13,6 +13,12 @@ class KonovalovSSeidelMethodSEQ : public BaseTask {
   explicit KonovalovSSeidelMethodSEQ(const InType &in);
 
  private:
+  int size;
+  std::vector<std::vector<double>> A;
+  std::vector<double> B;
+  int max_iter;
+  int iter;
+
   bool ValidationImpl() override;
   bool PreProcessingImpl() override;
   bool RunImpl() override;

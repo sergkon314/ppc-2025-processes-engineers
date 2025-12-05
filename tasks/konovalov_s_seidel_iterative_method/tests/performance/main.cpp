@@ -10,13 +10,12 @@ namespace konovalov_s_seidel_iterative_method {
 class ExampleRunPerfTestProcesses2 : public ppc::util::BaseRunPerfTests<InType, OutType> {
   const int kCount_ = 100;
   InType input_data_{};
-
+  std::vector<double> s;
   void SetUp() override {
-    input_data_ = kCount_;
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    return input_data_ == output_data;
+    return output_data == s;
   }
 
   InType GetTestInputData() final {

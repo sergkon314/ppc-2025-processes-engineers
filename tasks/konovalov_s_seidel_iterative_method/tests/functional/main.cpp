@@ -23,36 +23,54 @@ namespace konovalov_s_seidel_iterative_method {
 class KonovalovSRunFuncTestsProcesses2 : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
  public:
   static std::string PrintTestParam(const TestType &test_param) {
-    return std::to_string(std::get<0>(test_param)) + "_" + std::get<1>(test_param);
+    int fndot = test_param.find(".");
+    return test_param.substr(0, fndot);
   }
 
  protected:
   void SetUp() override {
-    int width = -1;
-    int height = -1;
-    int channels = -1;
-    std::vector<uint8_t> img;
-    // Read image in RGB to ensure consistent channel count
-    {
-      std::string abs_path = ppc::util::GetAbsoluteTaskPath(PPC_ID_konovalov_s_seidel_iterative_method, "pic.jpg");
-      auto *data = stbi_load(abs_path.c_str(), &width, &height, &channels, STBI_rgb);
-      if (data == nullptr) {
-        throw std::runtime_error("Failed to load image: " + std::string(stbi_failure_reason()));
-      }
-      channels = STBI_rgb;
-      img = std::vector<uint8_t>(data, data + (static_cast<ptrdiff_t>(width * height * channels)));
-      stbi_image_free(data);
-      if (std::cmp_not_equal(width, height)) {
-        throw std::runtime_error("width != height: ");
-      }
+    TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
+    std::string data4test = ppc::util::GetAbsoluteTaskPath(PPC_SETTINGS_konovalov_s_seidel_iterative_method, params);
+    
+    std::string raw_data;
+    std::ifstream in(data4test);
+    std::vector<std::string> segmlist;
+
+    while(std::getline(in, raw_data, ' ')){
+      segmlist.push_back(raw_data);
     }
 
-    TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
-    input_data_ = width - height + std::min(std::accumulate(img.begin(), img.end(), 0), channels);
+    int _size = (int)raw_data[0];
+    int _iter = (int)raw_data[1];
+    std::vector<std::vector<double>> _A(_size, std::vector<double>(_size, 0.00));
+    std::vector<double> _B(_size, 0.00);
+
+    size_t count = 2;
+    
+    for(int i = 0; i < _size; i++){
+      for(int j = 0; j < _size; j++){
+        _A[i][j] = (double)raw_data[count];
+        count++;
+      } 
+    }
+
+    for(int i = 0; i < _size; i++){
+      _B[i] = (double)raw_data[count];
+      count++;
+    }
+    
+    input_data_ = std::make_tuple(_size, _A, _B, _iter);
+
+    correct_output.resize(_size, 0.000);
+
+    for(int i = 0; i < _size; i++){
+      correct_output[i] = (double)raw_data[count];
+      count++;
+    }
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    return (input_data_ == output_data);
+    return correct_output == output_data;
   }
 
   InType GetTestInputData() final {
@@ -60,16 +78,17 @@ class KonovalovSRunFuncTestsProcesses2 : public ppc::util::BaseRunFuncTests<InTy
   }
 
  private:
-  InType input_data_ = 0;
+  InType input_data_;
+  OutType correct_output;
 };
 
 namespace {
 
-TEST_P(KonovalovSRunFuncTestsProcesses2, MatmulFromPic) {
+TEST_P(KonovalovSRunFuncTestsProcesses2, SeidelMethodF) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 3> kTestParam = {std::make_tuple(3, "3"), std::make_tuple(5, "5"), std::make_tuple(7, "7")};
+const std::array<TestType, 1> kTestParam = {"sys_1.txt"};
 
 const auto kTestTasksList =
     std::tuple_cat(ppc::util::AddFuncTask<KonovalovSSeidelMethodMPI, InType>(kTestParam, PPC_SETTINGS_konovalov_s_seidel_iterative_method),
@@ -79,7 +98,7 @@ const auto kGtestValues = ppc::util::ExpandToValues(kTestTasksList);
 
 const auto kPerfTestName = KonovalovSRunFuncTestsProcesses2::PrintFuncTestName<KonovalovSRunFuncTestsProcesses2>;
 
-INSTANTIATE_TEST_SUITE_P(PicMatrixTests, KonovalovSRunFuncTestsProcesses2, kGtestValues, kPerfTestName);
+INSTANTIATE_TEST_SUITE_P(LinearSysOfEqFromFileF, KonovalovSRunFuncTestsProcesses2, kGtestValues, kPerfTestName);
 
 }  // namespace
 

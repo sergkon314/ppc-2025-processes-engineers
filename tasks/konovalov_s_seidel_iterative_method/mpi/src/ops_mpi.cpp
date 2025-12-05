@@ -13,60 +13,23 @@ namespace konovalov_s_seidel_iterative_method {
 KonovalovSSeidelMethodMPI::KonovalovSSeidelMethodMPI(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
-  GetOutput() = 0;
+  GetOutput() = std::vector<double>(3, 0.0);
 }
 
 bool KonovalovSSeidelMethodMPI::ValidationImpl() {
-  return (GetInput() > 0) && (GetOutput() == 0);
+  return true;
 }
 
 bool KonovalovSSeidelMethodMPI::PreProcessingImpl() {
-  GetOutput() = 2 * GetInput();
-  return GetOutput() > 0;
+  return true;
 }
 
 bool KonovalovSSeidelMethodMPI::RunImpl() {
-  auto input = GetInput();
-  if (input == 0) {
-    return false;
-  }
-
-  for (InType i = 0; i < GetInput(); i++) {
-    for (InType j = 0; j < GetInput(); j++) {
-      for (InType k = 0; k < GetInput(); k++) {
-        std::vector<InType> tmp(i + j + k, 1);
-        GetOutput() += std::accumulate(tmp.begin(), tmp.end(), 0);
-        GetOutput() -= i + j + k;
-      }
-    }
-  }
-
-  const int num_threads = ppc::util::GetNumThreads();
-  GetOutput() *= num_threads;
-
-  int rank = 0;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-  if (rank == 0) {
-    GetOutput() /= num_threads;
-  } else {
-    int counter = 0;
-    for (int i = 0; i < num_threads; i++) {
-      counter++;
-    }
-
-    if (counter != 0) {
-      GetOutput() /= counter;
-    }
-  }
-
-  MPI_Barrier(MPI_COMM_WORLD);
-  return GetOutput() > 0;
+ return true;
 }
 
 bool KonovalovSSeidelMethodMPI::PostProcessingImpl() {
-  GetOutput() -= GetInput();
-  return GetOutput() > 0;
+  return true;
 }
 
 }  // namespace konovalov_s_seidel_iterative_method

@@ -11,50 +11,54 @@ namespace konovalov_s_seidel_iterative_method {
 KonovalovSSeidelMethodSEQ::KonovalovSSeidelMethodSEQ(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
-  GetOutput() = 0;
+  GetOutput() = std::vector<double>(size, 0.0);
 }
 
 bool KonovalovSSeidelMethodSEQ::ValidationImpl() {
-  return (GetInput() > 0) && (GetOutput() == 0);
+  /*
+  if(std::get<3>(GetInput()) < 0) return false;
+  if(std::get<2>(GetInput()).size() != std::get<0>(GetInput()) ||
+    std::get<1>(GetInput()).size() != std::get<0>(GetInput())) 
+    return false;*/
+  return true;
 }
 
 bool KonovalovSSeidelMethodSEQ::PreProcessingImpl() {
-  GetOutput() = 2 * GetInput();
-  return GetOutput() > 0;
+  size = std::get<0>(GetInput());
+  A.resize(size, std::vector<double>(size, 0.0));
+  A = std::get<1>(GetInput());
+  B.resize(size);
+  B = std::get<2>(GetInput());
+  iter = std::get<3>(GetInput());
+  return true;
 }
 
 bool KonovalovSSeidelMethodSEQ::RunImpl() {
-  if (GetInput() == 0) {
-    return false;
-  }
+  std::vector<double> X(size, 0.0),  X_new(size, 0.0);
 
-  for (InType i = 0; i < GetInput(); i++) {
-    for (InType j = 0; j < GetInput(); j++) {
-      for (InType k = 0; k < GetInput(); k++) {
-        std::vector<InType> tmp(i + j + k, 1);
-        GetOutput() += std::accumulate(tmp.begin(), tmp.end(), 0);
-        GetOutput() -= i + j + k;
+  while (iter != 0){
+
+    for(int i = 0; i < size; i++){
+      X_new[i] = B[i]/A[i][i];
+
+      for(int j = 0; j < size; j++){
+        if(j == i) continue;
+        X_new[i] -= (A[i][j]/A[i][i]) * X[i];
+        X[i] = round(X_new[i]*1000)/1000;
       }
     }
+    iter--;
+
+    
   }
 
-  const int num_threads = ppc::util::GetNumThreads();
-  GetOutput() *= num_threads;
 
-  int counter = 0;
-  for (int i = 0; i < num_threads; i++) {
-    counter++;
-  }
-
-  if (counter != 0) {
-    GetOutput() /= counter;
-  }
-  return GetOutput() > 0;
+  GetOutput() = X;
+  return true;
 }
 
 bool KonovalovSSeidelMethodSEQ::PostProcessingImpl() {
-  GetOutput() -= GetInput();
-  return GetOutput() > 0;
+  return true;
 }
 
 }  // namespace konovalov_s_seidel_iterative_method
