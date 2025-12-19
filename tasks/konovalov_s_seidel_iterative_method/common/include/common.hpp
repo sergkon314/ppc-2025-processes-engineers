@@ -7,9 +7,9 @@
 
 namespace konovalov_s_seidel_iterative_method {
 
-using InType = std::tuple<int, std::vector<std::vector<double>>, std::vector<double>, int>;
+using InType = int;
 using OutType = std::vector<double>;
-using TestType = std::string;
+using TestType = std::tuple<const char*, int>;
 using BaseTask = ppc::task::Task<InType, OutType>;
 
 }  // namespace konovalov_s_seidel_iterative_method
