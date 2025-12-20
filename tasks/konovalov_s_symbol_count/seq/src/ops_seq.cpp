@@ -11,7 +11,7 @@ namespace konovalov_s_symbol_count {
 KonovalovSSymbolCountSEQ::KonovalovSSymbolCountSEQ(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
-  GetOutput() = 0;
+  GetOutput() = std::make_tuple(0, 0);
 }
 
 bool KonovalovSSymbolCountSEQ::ValidationImpl() {
@@ -29,12 +29,12 @@ bool KonovalovSSymbolCountSEQ::RunImpl() {
   int symbols_count = 0;
 
   for (std::uint32_t i = 0; i < line_length; i++){
-      if(isalnum(line[i]) && !isdigit(line[i])) symbols_count++;
+      if(isalpha(line[i])) symbols_count++;
   }
 
   //GetOutput() = static_cast<OutType>(symbols_count);
 
-  GetOutput() = static_cast<OutType>(symbols_count);
+  GetOutput() = static_cast<OutType>(std::make_tuple(symbols_count, 0));
 
   return true;
 }

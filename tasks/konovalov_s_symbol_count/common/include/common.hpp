@@ -8,7 +8,7 @@
 namespace konovalov_s_symbol_count {
 
 using InType = std::string;
-using OutType = int;
+using OutType = std::tuple<int, int>;
 using TestType = std::tuple<int, std::string>;
 using BaseTask = ppc::task::Task<InType, OutType>;
 

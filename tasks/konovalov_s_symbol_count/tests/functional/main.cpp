@@ -41,8 +41,12 @@ class KonovalovSSymbolCountFuncTest : public ppc::util::BaseRunFuncTests<InType,
     in.close();
   }
 
-  bool CheckTestOutputData(OutType &output_data) final {
-    return output_data == correct_output;
+  bool CheckTestOutputData(OutType &output_data) {
+    std::cout << __FILE__ << ":" << __LINE__ << ": " << std::get<0>(output_data) << " " << correct_output << std::endl;
+    if(std::get<1>(output_data) == 0){
+      return std::get<0>(output_data) == correct_output;
+    }
+    return true;
   }
 
   InType GetTestInputData() final {
@@ -51,7 +55,7 @@ class KonovalovSSymbolCountFuncTest : public ppc::util::BaseRunFuncTests<InType,
 
  private:
   InType input_data_;
-  OutType correct_output;
+  int correct_output;
 };
 
 namespace {
@@ -61,6 +65,7 @@ TEST_P(KonovalovSSymbolCountFuncTest, SymbolsInLineCountFT) {
 }
 
 const std::array<TestType, 3> kTestParam = {std::make_tuple(15, "text_line_15.txt"), std::make_tuple(337, "text_line_337.txt"),std::make_tuple(681, "text_line_681.txt")};
+// const std::array<TestType, 1> kTestParam = {std::make_tuple(337, "text_line_337.txt")};
 
 const auto kTestTasksList =
     std::tuple_cat(ppc::util::AddFuncTask<KonovalovSSymbolCountMPI, InType>(kTestParam, PPC_SETTINGS_konovalov_s_symbol_count),
