@@ -8,31 +8,21 @@
 namespace konovalov_s_symbol_count {
 
 class KonovalovSSymbolCountPerfTest : public ppc::util::BaseRunPerfTests<InType, OutType> {
-  InType input_data_ = "";
-  OutType correct_output = std::make_tuple(0, 0);
+  InType input_data_;
+  OutType correct_output = 0;
 
   void SetUp() override {
-    // TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
-    // std::string data4test = std::get<1>(params);
-    
-    // std::ifstream in;
-    // in.open(data4test);
-    // std::getline(in, input_data_);
-
-    // correct_output = std::get<0>(params);
-    
-
-    // in.close();
-
-    // correct_output = 1500;
-
-    // for(std::uint32_t i = 0; i < 1500; i++)
-    //   input_data_ += "P/1.";
-
+    std::string str;
+    for(int i = 0; i < 100000000; i++){
+      str += "0";
+    }
+    str += "t";
+    input_data_ = str;
+    correct_output = 1;
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    return std::get<0>(output_data) > -1;
+    return output_data == correct_output;
   }
 
   InType GetTestInputData() final {

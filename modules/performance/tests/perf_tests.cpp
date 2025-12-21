@@ -39,6 +39,8 @@ class TestPerfTask : public ppc::task::Task<InType, OutType> {
   }
 
   bool RunImpl() override {
+    std::cout << __FILE__ << ":" << __LINE__ << ": " << "" << std::endl;
+    
     for (unsigned i = 0; i < this->GetInput().size(); i++) {
       this->GetOutput() += this->GetInput()[i];
     }

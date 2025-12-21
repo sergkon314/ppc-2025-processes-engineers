@@ -11,7 +11,7 @@ namespace konovalov_s_symbol_count {
 KonovalovSSymbolCountSEQ::KonovalovSSymbolCountSEQ(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
-  GetOutput() = std::make_tuple(0, 0);
+  GetOutput() = 0;
 }
 
 bool KonovalovSSymbolCountSEQ::ValidationImpl() {
@@ -23,18 +23,19 @@ bool KonovalovSSymbolCountSEQ::PreProcessingImpl() {
 }
 
 bool KonovalovSSymbolCountSEQ::RunImpl() {
-  InType &line = GetInput();
-  std::size_t line_length = line.length();
   
-  int symbols_count = 0;
-
-  for (std::uint32_t i = 0; i < line_length; i++){
-      if(isalpha(line[i])) symbols_count++;
-  }
+  InType &line = GetInput();
+  
+  // auto start = std::chrono::steady_clock::now();
+  int count = count_if(line.begin(), line.end(), [](unsigned char c) { return isdigit(c) == 0; });
+  // auto end = std::chrono::steady_clock::now();
+  // std::cout << __FILE__ << ":" << __LINE__ << ": " << " res_seq: " << count << std::endl;
 
   //GetOutput() = static_cast<OutType>(symbols_count);
 
-  GetOutput() = static_cast<OutType>(std::make_tuple(symbols_count, 0));
+  GetOutput() = static_cast<OutType>(count);
+    // auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    // std::cout << __FILE__ << ":" << __LINE__ << ": " << duration.count() <<  std::endl;
 
   return true;
 }

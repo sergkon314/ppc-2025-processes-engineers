@@ -145,7 +145,7 @@ class PPCRunner:
                 self.__ppc_env["OMP_NUM_THREADS"],
             ]
             np_args = ["-n", ppc_num_proc]
-            return base + env_args + np_args
+            return base + env_args + np_args 
 
         # Non-Windows
         if self.mpi_env_mode == "openmpi":
