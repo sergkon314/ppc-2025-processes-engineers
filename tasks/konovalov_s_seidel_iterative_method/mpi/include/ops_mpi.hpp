@@ -13,18 +13,15 @@ class KonovalovSSeidelMethodMPI : public BaseTask {
   explicit KonovalovSSeidelMethodMPI(const InType &in);
 
  private:
-  int size;
-  std::vector<double> A;
-  std::vector<double> B;
-  int max_iter;
-  int iter;
 
   bool ValidationImpl() override;
   bool PreProcessingImpl() override;
   bool RunImpl() override;
   bool PostProcessingImpl() override;
-  std::vector<double> IterationProcess(std::vector<double> &_A, std::vector<double> &_B, double X0, int _iter,
-                                     double _epsi);
+  static std::vector<double> IterationProcess(int mtr_szie, int diff, int rank, std::vector<int> &_A, std::vector<int> &_B);
+  void InitMatrixA(int size, int fmax, std::vector<int> &A, int diff);
+  void InitMatrixB(int size, int fmax, std::vector<int> &B);
+  std::vector<int> Coloring(int size, std::vector<int> &_A);
 };
 
 }  // namespace konovalov_s_seidel_iterative_method

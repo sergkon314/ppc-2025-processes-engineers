@@ -21,17 +21,47 @@ std::vector<double> _B_local;
 int _size, _iter;
 
 void init_matrix(long unsigned int size, int fmax, std::vector<double> &A) {
-  double x = 1 + rand() % fmax;;
+  int diff = 2;
+  double x = 1 + rand() % fmax;
   for (long unsigned int i = 0; i < size; i++) {
-    if (i != 0) {
-      A[i * size + i - 1] = x;
+    for(int j = 0; j < diff; j++) {
+      if (i * size + i - j > 0 && i * size + i - j >= i * size) {
+        A[i * size + i - j] = x * (diff - j);
+      }
+      if (i * size + i + j < size*size && i + j < size) {
+        A[i * size + i + j] = x * (diff - j);
+      }
     }
-    if (i != size) {
-      A[i * size + i + 1] = x;
-    }
-    A[i * size + i] = x * 2 + 1;
+    A[i * size + i] = x * (diff*diff);
   }
 }
+
+void InitMatrixB(long unsigned int size, int fmax, std::vector<double> &B) {
+  for (long unsigned int i = 0; i < size; i++) {
+    B[i] = 1 + rand() % fmax;
+  }
+}
+
+void coloring(int N, std::vector<double> _A){
+  std::vector<double> A = _A; //coefficient matrix.int 
+  std::vector<int> color(N); //colors of rows.
+  for (int i = 0; i < N; ++i) color[i] = -1;
+  for (int i = 0; i < N; ++i) {
+    int m = 0;
+    for (int j = 0; j < i; j++) {
+      if (A[i*N + j] != 0 && color[j] == m) {
+        ++m;
+      }
+    }
+    color[i] = m;
+  }
+  std::cout << "colors ";
+  for (auto i : color) {
+    std::cout << i << " ";
+  }
+  std::cout << std::endl;
+}
+
 std::vector<double> iterationprocess(std::vector<double> &_A, std::vector<double> &_B, double X0, int _iter,
                                      double _epsi) {
   double epsi = _epsi;
@@ -63,7 +93,7 @@ std::vector<double> iterationprocess(std::vector<double> &_A, std::vector<double
   }
 
   std::cout << "iter " << iter << std::endl;
-  for (auto i : _A) {
+  for (auto i : _B) {
     std::cout << i << " ";
   }
   std::cout << std::endl;
@@ -71,18 +101,16 @@ std::vector<double> iterationprocess(std::vector<double> &_A, std::vector<double
 }
 
 int main(int argc, const char *argv[]) {
+  
+  srand(time(NULL));
   int rank = 0;
   int size = 0;
-  // MPI_Init(&argc, (char ***)&argv);
-  // MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  // MPI_Comm_size(MPI_COMM_WORLD, &size);
 
   std::vector<double> _A;
   std::vector<double> _A_local;
   std::vector<double> _B;
   std::vector<double> _B_local;
 
-  // MPI_Datatype custom_vec;
   std::string segmlist;
   std::ifstream in("sys_3.txt");
   std::vector<std::string> raw_data;
@@ -95,43 +123,14 @@ int main(int argc, const char *argv[]) {
   int _iter = std::stoi(raw_data[1]);
   std::cout << _size << std::endl;
 
-  //   std::vector<std::vector<double>> _A1(_size, std::vector<double>(_size, 0.00));
-  //   std::vector<std::vector<double>> _A_local1(_size, std::vector<double>(_size, 0.00));
-
   _A.resize(_size * _size, 0.00);
   _A_local.resize(_size * _size, 0.00);
   _B.resize(_size, 0.00);
   _B_local.resize(_size, 0.00);
 
-  std::vector<double> X(_size, 0.00);
-
-  int count = 2;
-
-  // for (int i = 0; i < _size * _size; i++) {
-  //   _A[i] = std::stod(raw_data[count]);
-  //   std::cout << _A[i] << " ";
-  //   count++;
-  // }
-  // std::cout << std::endl;
-  // for (int i = 0; i < _size; i++) {
-  //   _B[i] = std::stod(raw_data[count]);
-  //   std::cout << _B[i] << " ";
-  //   count++;
-  // }
-  // std::cout << std::endl;
   _A.resize(_size * _size, 0.0);
-  init_matrix(_size, 100, _A);
-  //   MPI_Type_vector(_size, 1, _size, MPI_DOUBLE, &custom_vec);
-
-  //   MPI_Type_commit(&custom_vec);
-
-  // MPI_Scatter(&_A, _size, MPI_DOUBLE, &_A_local, _size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-  // MPI_Scatter(&_B, _size, MPI_DOUBLE, &_B_local, _size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-  //   MPI_Gather()
-
-  // std::cout << "rank " << rank << std::endl;
+  init_matrix(_size, 10, _A);
+  InitMatrixB(_size, 10, _B);
   for (unsigned long int i = 0; i < _size * _size; i++) {
     std::cout << _A[i] << " ";
     if (i % _size == _size - 1) {
@@ -139,10 +138,13 @@ int main(int argc, const char *argv[]) {
     }
   }
   std::cout << std::endl;
-  std::cout << _A[11] << std::endl;
 
-  //   MPI_Type_free(&custom_vec);}
-
-  // // MPI_Finalize();
+  std::vector<double> X(_size, 0.0);
+  X = iterationprocess(_A, _B, 0, 10, 0.001);
+  coloring(_size, _A);
+ for (unsigned long int i = 0; i < _size; i++) {
+    std::cout << X[i] << " ";
+  }
+  std::cout << std::endl;
   return 0;
 }

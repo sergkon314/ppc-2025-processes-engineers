@@ -14,8 +14,6 @@ class KonovalovSSeidelMethodSEQ : public BaseTask {
 
  private:
   int size = 0;
-  std::vector<double> A;
-  std::vector<double> B;
   int max_iter = 0;
   int iter = 0;
 
@@ -23,11 +21,11 @@ class KonovalovSSeidelMethodSEQ : public BaseTask {
   bool PreProcessingImpl() override;
   bool RunImpl() override;
   bool PostProcessingImpl() override;
-  static std::vector<double> IterationProcess(std::vector<double> &_A, std::vector<double> &_B, double X0, int _iter,
+  static std::vector<double> IterationProcess(std::vector<double> &_A, std::vector<double> &_B, int _iter,
                                      double _epsi);
-  void InitMatrixA(long unsigned int size, int fmax, std::vector<double> &A);
-  void InitMatrixB(long unsigned int size, int fmax, std::vector<double> &B);
-  
+  void InitMatrixA(int size, int fmax, std::vector<double> &A, int diff);
+  void InitMatrixB(int size, int fmax, std::vector<double> &B);
+  std::vector<int> Coloring(int size, std::vector<double> _A);
 };
 
 }  // namespace konovalov_s_seidel_iterative_method

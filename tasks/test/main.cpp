@@ -1,103 +1,74 @@
-#include <algorithm>
-#include <array>
-#include <cstddef>
-#include <cstdint>
-#include <numeric>
-#include <stdexcept>
-#include <string>
-#include <tuple>
-#include <utility>
-#include <vector>
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <cmath>
+#include <mpi.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
- int main(int argc, char const *argv[])
- {
-    std::string segmlist;
-    std::ifstream in("sys_3.txt");
-    std::vector<std::string> raw_data;
+#define SIZE 4
 
-    while(std::getline(in, segmlist, ' ')){
-      raw_data.push_back(segmlist);
+int main(int argc, char *argv[])
+{
+    // Get number of processes and check that 3 processes are used
+    MPI_Init(&argc, &argv);
+    int size;
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    if(size != 3)
+    {
+        printf("This application is meant to be run with 3 processes.\n");
+        MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
-
-    for(auto i: raw_data){
-        std::cout << i << " ";
-    }
-    std::cout << std::endl;
-          
-    for(auto i: raw_data){
-        
-    }
-    int _size = std::stoi(raw_data[0]);
-
-    std::cout << _size << std::endl;
-    int _iter = std::stoi(raw_data[1]);
-
-    std::vector<std::vector<double>> _A(_size, std::vector<double>(_size, 0.00));
-    std::vector<double> _B(_size, 0.00);
-
-    int count = 2;
-    
-    for(int i = 0; i < _size; i++){
-      for(int j = 0; j < _size; j++){
-        _A[i][j] = std::stod(raw_data[count]);
-        count++;
-      } 
-    }
-
-    for(int i = 0; i < _size; i++){
-        _B[i] = std::stod(raw_data[count]);
-        std::cout << _B[i] << " ";
-        count++;
-    }
-    std::cout << std::endl;
-    auto input_data_ = std::make_tuple(_size, _A, _B, _iter);
-    double epsi = 0.001;
-    std::vector<double> X(_size, 0.0);
-
-    while(_iter != 0){
-        bool flag = true;
-
-        std::vector<double> X_new(_size, 0.0);
-        for(int i = 0; i < _size; i++){
-            
-            X_new[i] = _B[i]/_A[i][i];
-
-            for(int j = 0; j < _size; j++){
-                if(j == i) continue;
-                X_new[i] -= (_A[i][j]/_A[i][i]) * X[j];
-            }
-
-            
-            flag = flag && (std::fabs(X_new[i] - X[i]) < epsi);
-            
-            std::cout << std::fabs(X_new[i] - X[i]) << std::endl;
-            X[i] = round(X_new[i]*1000)/1000;
-
-        }
-
-        std::cout << "Values ";
-        for(auto i: X){
-            std::cout <<  i << " ";
-        }
-        for(auto i: X_new){
-            std::cout <<  i << " ";
-        }
-        std::cout << std::endl;
-        _iter--;
-
-        if(flag){
-            return 0;
-        }
-    }
-    for(auto i: X){
-            std::cout << i << " ";
-        }
-    std::cout << std::endl;
-    
-        return 0;
- }
  
+    // Determine root's rank
+    int root_rank = 0;
+ 
+    // Get my rank
+    int my_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+ 
+    switch(my_rank)
+    {
+        case 0:
+        {
+            // Define my value
+            int my_value;
+ 
+            // Declare the buffer
+            int buffer[7] = {100, 0, 101, 102, 0, 0, 103};
+ 
+            // Declare the counts
+            int counts[3] = {1, 2, 1};
+ 
+            // Declare the displacements
+            int displacements[3] = {0, 2, 6};
+ 
+            printf("Values in the buffer of root process:");
+            for(int i = 0; i < 7; i++)
+            {
+                printf(" %d", buffer[i]);
+            }
+            printf("\n");
+            MPI_Scatterv(buffer, counts, displacements, MPI_INT, &my_value, 1, MPI_INT, root_rank, MPI_COMM_WORLD);
+            printf("Process %d received value %d.\n", my_rank, my_value);
+            break;
+        }
+        case 1:
+        {
+            // Declare my values
+            int my_values[2];
+ 
+            MPI_Scatterv(NULL, NULL, NULL, MPI_INT, my_values, 2, MPI_INT, root_rank, MPI_COMM_WORLD);
+            printf("Process %d received values %d and %d.\n", my_rank, my_values[0], my_values[1]);
+            break;
+        }
+        case 2:
+        {
+            // Declare my values
+            int my_value;
+ 
+            MPI_Scatterv(NULL, NULL, NULL, MPI_INT, &my_value, 1, MPI_INT, root_rank, MPI_COMM_WORLD);
+            printf("Process %d received value %d.\n", my_rank, my_value);
+            break;
+        }
+    }
+    MPI_Finalize();
+    return 0;
+}

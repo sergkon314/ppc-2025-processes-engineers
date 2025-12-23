@@ -15,7 +15,7 @@ KonovalovSSeidelMethodSEQ::KonovalovSSeidelMethodSEQ(const InType &in) {
 }
 
 bool KonovalovSSeidelMethodSEQ::ValidationImpl() {
-  if(GetInput() < 3) return false;
+  if(GetInput() < 16) return false;
   return true;
 }
 
@@ -25,31 +25,66 @@ bool KonovalovSSeidelMethodSEQ::PreProcessingImpl() {
   return true;
 }
 
-void KonovalovSSeidelMethodSEQ::InitMatrixA(long unsigned int size, int fmax, std::vector<double> &A) {
-  A.resize(size*size, 0.0);
-  double x = 1 + rand() % fmax;
-  for (long unsigned int i = 0; i < size; i++) {
-    if (i != 0) {
-      A[i * size + i - 1] = x;
-    }
-    if (i != size) {
-      A[i * size + i + 1] = x;
-    }
-    A[i * size + i] = x * 2 + 1;
+void KonovalovSSeidelMethodSEQ::InitMatrixA(int size, int fmax, std::vector<double> &A, int _diff) {
+  int diff = _diff;
+  int x = rand() % fmax;
+
+  for (int i = 0; i < size; i++) {
+    int sum = 0;
+    int j = 1;
+    do {
+      int diff_addr_pos = i * size + i + j;
+      int diff_addr_neg = i * size + i - j;
+
+      if (diff_addr_neg > 0 && diff_addr_neg >= i * size) {
+        A[diff_addr_neg] = x * (diff - j);
+        sum += A[diff_addr_neg];
+      }
+
+      if (diff_addr_pos < size*size && i + j < size) {
+        A[diff_addr_pos] = x * (diff - j);
+        sum += A[diff_addr_pos];
+      }
+      j++;
+    } while (j < diff);
+    A[i * size + i] = abs(sum + 1);
   }
+  // std::cout << __FILE__ << ":" << __LINE__ << ": initial x: " << x << " " << std::endl;
 }
 
-void KonovalovSSeidelMethodSEQ::InitMatrixB(long unsigned int size, int fmax, std::vector<double> &B) {
-  for (long unsigned int i = 0; i < size; i++) {
-    B[i] = 1 + rand() % fmax;
+void KonovalovSSeidelMethodSEQ::InitMatrixB(int size, int fmax, std::vector<double> &B) {
+  for (int i = 0; i < size; i++) {
+    B[i] = rand() % fmax;
   }
+  
 }
 
-std::vector<double> KonovalovSSeidelMethodSEQ::IterationProcess(std::vector<double> &_A, std::vector<double> &_B, double X0, int _iter,
+std::vector<int> KonovalovSSeidelMethodSEQ::Coloring(int size, std::vector<double> _A){
+  std::vector<double> A = _A; //coefficient matrix.int 
+  std::vector<int> color(size); //colors of rows.
+  for (int i = 0; i < size; ++i) color[i] = -1;
+  for (int i = 0; i < size; ++i) {
+    int m = 0;
+    for (int j = 0; j < i; j++) {
+      if (A[i*size + j] != 0 && color[j] == m) {
+        ++m;
+      }
+    }
+    color[i] = m;
+  }
+  // std::cout << "colors ";
+  // for (auto i : color) {
+  //   std::cout << i << " ";
+  // }
+  // std::cout << std::endl;
+  return color;
+}
+
+std::vector<double> KonovalovSSeidelMethodSEQ::IterationProcess(std::vector<double> &_A, std::vector<double> &_B, int _iter,
                                      double _epsi) {
   double epsi = _epsi;
   int iter = _iter;
-  std::vector<double> X(_B.size(), X0);
+  std::vector<double> X(_B.size(), 0.0);
 
   std::vector<double> X_new(_B.size(), 0.0);
 
@@ -70,18 +105,39 @@ std::vector<double> KonovalovSSeidelMethodSEQ::IterationProcess(std::vector<doub
     }
     iter--;
 
-    if (flag) break;
-    
+    if (flag) {
+      // std::cout << __FILE__ << ":" << __LINE__ << ": IP complete with iters left: " << iter << std::endl;
+      
+      break;
+    }
   }
   return X;
 }
 
 bool KonovalovSSeidelMethodSEQ::RunImpl() {
+  srand(time(NULL));
+
   std::vector<double> A(size*size, 0.0);
   std::vector<double> B(size, 0.0);
-  InitMatrixA(GetInput(), 100, A);
-  InitMatrixB(GetInput(), 100, B);
-  GetOutput() = IterationProcess(A, B, 0, iter, 0.001);
+  InitMatrixA(size, 10, A, size/4);
+  InitMatrixB(size, 10, B);
+  // int c = 0;
+  // std::cout <<  "x" << c << ": ";
+
+  // for (int i = 0; i < size * size; i++) {
+  //   std::cout << A[i] << " ";
+  //   if (i % size == size - 1) {
+  //     std::cout << std::endl;
+  //     c++;
+  //     std::cout <<  "x" << c << ": ";
+  //   }
+  // }
+  // for (int i = 0; i < size; i++) {
+  //   std::cout << B[i] << " ";
+  // }
+  // std::cout << std::endl;
+  Coloring(size, A);
+  GetOutput() = IterationProcess(A, B, 10, 0.001);
 
   return true;
   

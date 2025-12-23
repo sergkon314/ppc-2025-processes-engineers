@@ -37,6 +37,11 @@ class KonovalovSRunFuncTestsProcesses2 : public ppc::util::BaseRunFuncTests<InTy
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
+    std::cout << __FILE__ << ":" << __LINE__ << ": output: ";
+    for (auto i: output_data){
+      std::cout  << i << " ";
+    }
+     std::cout << std::endl;
     return output_data != incorrect_output;
   }
 
@@ -55,8 +60,8 @@ TEST_P(KonovalovSRunFuncTestsProcesses2, SeidelMethodF) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 3> kTestParam = {std::make_tuple("sys_1", 3), std::make_tuple("sys_2", 6),
-                                            std::make_tuple("sys_3", 10)};
+const std::array<TestType, 3> kTestParam = {std::make_tuple("sys_1", 32), std::make_tuple("sys_2", 64),
+                                            std::make_tuple("sys_3", 128)};
 
 const auto kTestTasksList = std::tuple_cat(ppc::util::AddFuncTask<KonovalovSSeidelMethodMPI, InType>(
                                                kTestParam, PPC_SETTINGS_konovalov_s_seidel_iterative_method),
