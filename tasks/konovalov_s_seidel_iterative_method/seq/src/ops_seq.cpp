@@ -59,27 +59,6 @@ void KonovalovSSeidelMethodSEQ::InitMatrixB(int size, int fmax, std::vector<doub
   
 }
 
-std::vector<int> KonovalovSSeidelMethodSEQ::Coloring(int size, std::vector<double> _A){
-  std::vector<double> A = _A; //coefficient matrix.int 
-  std::vector<int> color(size); //colors of rows.
-  for (int i = 0; i < size; ++i) color[i] = -1;
-  for (int i = 0; i < size; ++i) {
-    int m = 0;
-    for (int j = 0; j < i; j++) {
-      if (A[i*size + j] != 0 && color[j] == m) {
-        ++m;
-      }
-    }
-    color[i] = m;
-  }
-  // std::cout << "colors ";
-  // for (auto i : color) {
-  //   std::cout << i << " ";
-  // }
-  // std::cout << std::endl;
-  return color;
-}
-
 std::vector<double> KonovalovSSeidelMethodSEQ::IterationProcess(std::vector<double> &_A, std::vector<double> &_B, int _iter,
                                      double _epsi) {
   double epsi = _epsi;
@@ -121,22 +100,6 @@ bool KonovalovSSeidelMethodSEQ::RunImpl() {
   std::vector<double> B(size, 0.0);
   InitMatrixA(size, 10, A, size/4);
   InitMatrixB(size, 10, B);
-  // int c = 0;
-  // std::cout <<  "x" << c << ": ";
-
-  // for (int i = 0; i < size * size; i++) {
-  //   std::cout << A[i] << " ";
-  //   if (i % size == size - 1) {
-  //     std::cout << std::endl;
-  //     c++;
-  //     std::cout <<  "x" << c << ": ";
-  //   }
-  // }
-  // for (int i = 0; i < size; i++) {
-  //   std::cout << B[i] << " ";
-  // }
-  // std::cout << std::endl;
-  Coloring(size, A);
   GetOutput() = IterationProcess(A, B, 10, 0.001);
 
   return true;

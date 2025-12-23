@@ -23,7 +23,6 @@ class KonovalovSSeidelMethodMPI : public BaseTask {
   void InitMatrixB(int size, int fmax, std::vector<int> &B);
   void DataDistr(int size, int diff, int mtr_size);
   void DataRecv(std::vector<int> &A_local, std::vector<int> &B_local, int matrix_size, int diff);
-  std::vector<int> Coloring(int size, std::vector<int> &_A);
 };
 
 }  // namespace konovalov_s_seidel_iterative_method

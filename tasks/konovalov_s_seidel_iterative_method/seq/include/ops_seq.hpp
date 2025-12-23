@@ -25,7 +25,6 @@ class KonovalovSSeidelMethodSEQ : public BaseTask {
                                      double _epsi);
   void InitMatrixA(int size, int fmax, std::vector<double> &A, int diff);
   void InitMatrixB(int size, int fmax, std::vector<double> &B);
-  std::vector<int> Coloring(int size, std::vector<double> _A);
 };
 
 }  // namespace konovalov_s_seidel_iterative_method

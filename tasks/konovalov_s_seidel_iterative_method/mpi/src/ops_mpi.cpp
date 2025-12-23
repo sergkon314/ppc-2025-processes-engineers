@@ -54,7 +54,6 @@ void KonovalovSSeidelMethodMPI::InitMatrixA(int size, int fmax, std::vector<int>
     } while (j < diff);
     A[i * size + i] = abs(sum + 1);
   }
-  std::cout << __FILE__ << ":" << __LINE__ << ": initial x: " << x << " " << std::endl;
 }
 
 void KonovalovSSeidelMethodMPI::InitMatrixB(int size, int fmax, std::vector<int> &B) {
@@ -63,28 +62,6 @@ void KonovalovSSeidelMethodMPI::InitMatrixB(int size, int fmax, std::vector<int>
   }
 }
 
-std::vector<int> KonovalovSSeidelMethodMPI::Coloring(int size, std::vector<int> &_A) {
-  std::vector<int> A = _A;       // coefficient matrix.int
-  std::vector<int> color(size);  // colors of rows.
-  for (int i = 0; i < size; ++i) {
-    color[i] = -1;
-  }
-  for (int i = 0; i < size; ++i) {
-    int m = 0;
-    for (int j = 0; j < i; j++) {
-      if (A[i * size + j] != 0 && color[j] == m) {
-        ++m;
-      }
-    }
-    color[i] = m;
-  }
-  std::cout << "colors ";
-  for (auto i : color) {
-    std::cout << i << " ";
-  }
-  std::cout << std::endl;
-  return color;
-}
 
 std::vector<double> KonovalovSSeidelMethodMPI::IterationStep(int mtr_size, int diff, int rank, std::vector<int> &_A,
                                                              std::vector<int> &_B, std::vector<double> &X_gl) {
@@ -94,15 +71,9 @@ std::vector<double> KonovalovSSeidelMethodMPI::IterationStep(int mtr_size, int d
 
   for (int i = 0; i < diff; i++) {
     int diag = (rank - 1) * (diff) + i;
-
-    // std::cout << rank << " " << diag << std::endl;
     X_new[diag] = (double)_B[i] / (double)_A[diag + i * mtr_size];
     for (int j = 0; j < mtr_size; j++) {
-      // std::cout << rank << " for " << i << std::endl;
-
       if (i * mtr_size + j == diag) {
-        // std::cout << rank << " if " << j << std::endl;
-
         continue;
       }
 
@@ -111,17 +82,7 @@ std::vector<double> KonovalovSSeidelMethodMPI::IterationStep(int mtr_size, int d
 
     X[diag] = round(X_new[diag] * 1000) / 1000;
     X_ret[i] = X[diag];
-    // MPI_Barrier(MPI_COMM_WORLD);
-    // std::cout << __FILE__ << ":" << __LINE__ << ": r: " << rank << " daig:" << diag << " B[i]: " << _B[i]
-    //           << " A: " << _A[diag + i * mtr_size];
-    // std::cout << " old: " << X[diag] << " stored: " << X_new[diag] << std::endl;
   }
-  // iter--;
-
-  // if (flag) {
-  //   break;
-  // }
-  // }
   return X_ret;
 }
 
@@ -151,18 +112,6 @@ void KonovalovSSeidelMethodMPI::DataRecv(std::vector<int> &A_local, std::vector<
 
   MPI_Recv(&A_local[0], matrix_size * diff, MPI_INT, 0, 0, MPI_COMM_WORLD, &s);
   MPI_Recv(&B_local[0], diff, MPI_INT, 0, 0, MPI_COMM_WORLD, &s);
-  // std::cout << "size: " << A_local.size() << std::endl;
-  // std::cout << "mtr size:  " << matrix_size << std::endl;
-  // std::cout << " local A: " << std::endl;
-  // int c = 0;
-  // for (int i = 0; i < matrix_size * diff; i++) {
-  //   std::cout << A_local[i] << " ";
-  //   if (i % matrix_size == matrix_size - 1) {
-  //     std::cout << B_local[c] << std::endl;
-  //     c++;
-  //   }
-  // }
-  // std::cout << std::endl;
 }
 
 bool KonovalovSSeidelMethodMPI::RunImpl() {
@@ -175,7 +124,6 @@ bool KonovalovSSeidelMethodMPI::RunImpl() {
 
   int matrix_size = GetInput();
   int diff = matrix_size / (size - 1);
-  // std::cout << rank << " diff " << diff << std::endl;
 
   std::vector<double> gl_x_vec(size * diff, 0.0);
   std::vector<double> local_x_vec(diff, 0.0);
@@ -203,61 +151,40 @@ bool KonovalovSSeidelMethodMPI::RunImpl() {
       for (int i = 0; i < diff; i++) {
         cover_tracker = cover_tracker && (std::fabs(local_x_vec[i] - gl_x_vec[(rank)*diff + i]) < epsi);
       }
-      // std::cout << "p" << rank << " local X: " << std::endl;
-      // for (int i = 0; i < diff; i++) {
-      //   std::cout << local_x_vec[i] << " ";
-      // }
-      // std::cout << std::endl;
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
 
     if (rank == 0) {
       std::vector<int> counts(size, diff);
-
-      // std::cout << "p" << rank << " counts: " << counts.data() << std::endl;
-
       std::vector<int> displacements(size);
 
       for (int i = 0; i < size; i++) {
         displacements[i] = diff * i;
       }
 
-      // std::cout << "p" << rank << " displ: ";  //<< displacements.data() << std::endl;
-      // for (int i = 0; i < size; i++) {
-      //   std::cout << displacements[i] << " ";
-      // }
-      // std::cout << std::endl;
-
-      MPI_Gatherv(&local_x_vec[0], diff, MPI_DOUBLE, &gl_x_vec[0], counts.data(), displacements.data(), MPI_DOUBLE,
-      0,
+      MPI_Gatherv(&local_x_vec[0], diff, MPI_DOUBLE, &gl_x_vec[0], counts.data(), displacements.data(), MPI_DOUBLE, 0,
                   MPI_COMM_WORLD);
-      // std::cout << std::endl;
-      // std::cout << "p" << rank << " gl X: " << std::endl;
-      // for (int i = 0; i < size * diff; i++) {
-      //   std::cout << gl_x_vec[i] << " ";
-      // }
-      // std::cout << std::endl;
     } else {
       MPI_Gatherv(&local_x_vec[0], diff, MPI_DOUBLE, NULL, NULL, NULL, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     }
     MPI_Bcast(&gl_x_vec[0], size * diff, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     MPI_Allreduce(&cover_tracker, &stop_calc, 1, MPI_C_BOOL, MPI_LAND, MPI_COMM_WORLD);
+
     if (stop_calc) {
-      std::cout << "iter : " << iter << std::endl;
       break;
     }
     iter--;
   }
   for (int i = diff; i < size * diff; i++) {
     GetOutput()[i - diff] = gl_x_vec[i];
+  }
+    return true;
+  }
 
-  return true;
-}
-
-bool KonovalovSSeidelMethodMPI::PostProcessingImpl() {
-  return true;
-}
+  bool KonovalovSSeidelMethodMPI::PostProcessingImpl() {
+    return true;
+  }
 
 }  // namespace konovalov_s_seidel_iterative_method

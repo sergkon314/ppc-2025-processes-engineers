@@ -37,11 +37,6 @@ class KonovalovSRunFuncTestsProcesses2 : public ppc::util::BaseRunFuncTests<InTy
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    std::cout << __FILE__ << ":" << __LINE__ << ": output: ";
-    for (auto i: output_data){
-      std::cout  << i << " ";
-    }
-     std::cout << std::endl;
     return output_data != incorrect_output;
   }
 
