@@ -49,19 +49,21 @@ make_tuple() - возвращает данные типа std::tuple<>.
 Ввиду своей простоты, весь алгоритм реализован в методе RunImpl().
 
 ## 6. Experimental Setup
-Тесты запускались в WSL с помощью докера.
+Проект запускался в WSL с помощью докера.
 - CPU: Intel Xeon CPU E5-2678 v3 2.50GHz
 - Cores: 12
 - RAM: 7.5 Gb
-- OS: Ubuntu 24.04.3 LTS
-- Toolchain: compiler, version, build type (Release/RelWithDebInfo)
-- Environment: PPC_NUM_THREADS / PPC_NUM_PROC, other relevant vars
-- Data: how test data is generated or sourced (relative paths)
+- OS: Ubuntu 24.04.3 LTS 
+- Compiler: GCC
+- Build type: Release
+- Environment: PPC_NUM_PROC
+- Data: tasks/konovalov_s_symbol_count/data
 
 ## 7. Results and Discussion
 
 ### 7.1 Correctness
-Briefly explain how correctness was verified (reference results, invariants, unit tests).
+Функциональный тест сверяет заранее известный верный ответ для данной строки символов с результатом, полученным в результате выполнения алгоритма. Для параллельной версии, верный ответ сверяется с результатами каждого процесса. 
+Алгоритм справился с фунциональными тестами, как на последовательной, так и на параллельной версии.
 
 ### 7.2 Performance
 Present time, speedup and efficiency. Example table:
@@ -69,16 +71,13 @@ Present time, speedup and efficiency. Example table:
 | Mode        | Count | Time, s | Speedup | Efficiency |
 |-------------|-------|---------|---------|------------|
 | seq         | 1     | 1.234   | 1.00    | N/A        |
-| omp         | 2     | 0.700   | 1.76    | 88.0%      |
+| mpi         | 2     | 0.700   | 1.76    | 88.0%      |
 | omp         | 4     | 0.390   | 3.16    | 79.0%      |
 
-Optionally add plots (use relative paths), and discuss bottlenecks and scalability limits.
 
-## 8. Conclusions
-Summarize findings and limitations.
 
 ## 9. References
-1. <Article/Book/Doc URL>
+1. <Article/Book/Doc [URL](https://www.opennet.ru/)>
 2. <Another source>
 
 ## Appendix (Optional)
