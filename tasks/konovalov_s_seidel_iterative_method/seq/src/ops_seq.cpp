@@ -49,7 +49,6 @@ void KonovalovSSeidelMethodSEQ::InitMatrixA(int size, int fmax, std::vector<doub
     } while (j < diff);
     A[i * size + i] = abs(sum + 1);
   }
-  // std::cout << __FILE__ << ":" << __LINE__ << ": initial x: " << x << " " << std::endl;
 }
 
 void KonovalovSSeidelMethodSEQ::InitMatrixB(int size, int fmax, std::vector<double> &B) {
@@ -85,8 +84,6 @@ std::vector<double> KonovalovSSeidelMethodSEQ::IterationProcess(std::vector<doub
     iter--;
 
     if (flag) {
-      // std::cout << __FILE__ << ":" << __LINE__ << ": IP complete with iters left: " << iter << std::endl;
-      
       break;
     }
   }

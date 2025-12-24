@@ -17,12 +17,6 @@ KonovalovSSeidelMethodMPI::KonovalovSSeidelMethodMPI(const InType &in) {
 }
 
 bool KonovalovSSeidelMethodMPI::ValidationImpl() {
-  // size = std::get<0>(GetInput());
-  // A.resize(size, 0.0);
-  // A = std::get<1>(GetInput());
-  // B.resize(size);
-  // B = std::get<2>(GetInput());
-  // iter = std::get<3>(GetInput());
   return GetInput() > 3;
 }
 
